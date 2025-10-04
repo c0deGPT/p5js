@@ -2,9 +2,9 @@ class shortBar {
   constructor(x, y, sizeX, sizeY) {
     this.x = x
     this.y = y
-    this.sizeX = random(sizeX/11, sizeX/7)
+    this.sizeX = random(sizeX/7, sizeX/5)
     this.sizeY = sizeY
-    this.speed = 2
+    this.speed = 1.5
     this.hit = false
   }
   move() {

@@ -28,7 +28,7 @@ function setup() {
   videoY = height/2 - videoHeight/2 - 70
 
   longBar = {
-    width : 350,
+    width : 200,
     height : 30
   }
   longBar.x = width/2 - longBar.width/2
