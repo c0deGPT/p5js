@@ -1,5 +1,6 @@
 let malaVideo
 let sutrasSound
+let videoX, videoY, videoWidth, videoHeight
 let playing = false
 
 let shortBars = []
@@ -9,32 +10,43 @@ let isJudgeLineJumping = false
 let jumpStartTime = 0 
 let jumpDuration = 200
 
+let hitRecords = []
+let recordStartTime = 0
+let floatingTexts = []
+
 function preload(){
   malaVideo = createVideo(['materials/mala_turn.mp4'])
   sutrasSound = loadSound(['materials/chant_sutras.MP3'])
 }
 
 function setup() {
-  createCanvas(800, 600)
+  createCanvas(windowWidth, windowHeight)
   malaVideo.hide()
+  videoWidth = malaVideo.width/4
+  videoHeight = malaVideo.height/4
+  videoX = width/2 - videoWidth/2
+  videoY = height/2 - videoHeight/2 - 70
+
   longBar = {
-    x : 200,
-    y : 470,
-    width : 400,
-    height : 25
+    width : 350,
+    height : 30
   }
+  longBar.x = width/2 - longBar.width/2
+  longBar.y = height - 230
+
   judgeLine = {
     x: longBar.x + longBar.width / 2,
     y: longBar.y,
     height: longBar.height
   }
+
+  recordStartTime = millis()
 }
 
 function draw() {
   background(240)
-  image(malaVideo, 
-        width/2 - malaVideo.width/10, height/2 - malaVideo.height/10 - 30, 
-        malaVideo.width/5, malaVideo.height/5)
+
+  image(malaVideo, videoX, videoY, videoWidth, videoHeight)
   fill(200)
   stroke(80)
   strokeWeight(1)
@@ -42,13 +54,31 @@ function draw() {
 
   drawJudgeLine()
   genNextBar()
+  updateFloatingTexts()
 }
 
-function keyPressed(){
+function keyPressed() {
   if (key ===' '){
     for (let i = shortBars.length - 1; i >= 0; i--){
       if(shortBars[i].isInJudgeZone(judgeLine.x) && !shortBars[i].hit){
         shortBars[i].hit = true
+
+        let currentTime = millis()
+        let timePassed = currentTime - recordStartTime
+
+        let record = new HitRecord(timePassed)
+        hitRecords.push(record)
+
+        let floatingText = new FloatingText(
+          record.formattedTime,
+          videoX,
+          videoY,
+          videoWidth,
+          videoHeight
+        )
+        floatingTexts.push(floatingText)
+        console.log(`trigger_timing: ${record.formattedTime}`)
+
         malaVideo.play()
         sutrasSound.play()
         console.log('trigger successfully!')
@@ -59,14 +89,14 @@ function keyPressed(){
         setTimeout(() => {
           malaVideo.pause()
           sutrasSound.pause()
-        }, 500)
+        }, 500) //video stops after trigger for some time
         break
       }
     }
   }
 }
 
-function drawJudgeLine(){
+function drawJudgeLine() {
   let jumpOffset = 0
   
   if (isJudgeLineJumping) {
@@ -74,7 +104,7 @@ function drawJudgeLine(){
     
     if (elapsed < jumpDuration) {
       let progress = elapsed / jumpDuration
-      jumpOffset = sin(progress * PI) * -20
+      jumpOffset = sin(progress * PI) * -40
     } else {
       isJudgeLineJumping = false
     }
@@ -82,18 +112,19 @@ function drawJudgeLine(){
 
   // judgeLine
   stroke(10)
-  strokeWeight(1)
+  strokeWeight(0.5)
   line(judgeLine.x, judgeLine.y + 1, judgeLine.x, judgeLine.y + judgeLine.height - 1)
   
   // judgeLineMark
   noStroke()
   fill(10)
-  ellipse(judgeLine.x, judgeLine.y - 10 + jumpOffset, 10)
+  ellipse(judgeLine.x, judgeLine.y - 15 + jumpOffset, 15)
 }
 
 function genNextBar(){
   if (frameCount % barInterval == 0) {
-    shortBars.push(new shortBar(longBar.x, longBar.y, longBar.width, longBar.height));
+    let ShortBar = new shortBar(longBar.x, longBar.y, longBar.width, longBar.height)
+    shortBars.push(ShortBar);
   }
 
   for (let i = shortBars.length - 1; i >= 0; i--){
@@ -105,24 +136,19 @@ function genNextBar(){
   }
 }
 
-class shortBar {
-  constructor(x, y, sizeX, sizeY) {
-    this.x = x
-    this.y = y
-    this.sizeX = random(sizeX/12, sizeX/7)
-    this.sizeY = sizeY
-    this.speed = 2.5
-    this.hit = false
-  }
-  move() {
-    this.x += this.speed
-  }
-  display() {
-    fill(150)
-    noStroke()
-    rect(this.x, this.y, this.sizeX, this.sizeY, 30)
-  }
-  isInJudgeZone(judgeX) {
-    return judgeX >= this.x && judgeX <= this.x + this.sizeX
+function updateFloatingTexts(){
+  for (let i = floatingTexts.length - 1; i >= 0; i--) {
+    floatingTexts[i].update()
+    floatingTexts[i].display()
+    
+    if (floatingTexts[i].isDead()) {
+      floatingTexts.splice(i, 1)
+    }
   }
 }
+
+function formatTime(ms) {
+  let seconds = (ms / 1000).toFixed(2)
+  return `${seconds}s`
+}
+
