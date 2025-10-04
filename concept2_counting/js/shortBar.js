@@ -4,7 +4,7 @@ class shortBar {
     this.y = y
     this.sizeX = random(sizeX/7, sizeX/5)
     this.sizeY = sizeY
-    this.speed = 1.5
+    this.speed = 1.4
     this.hit = false
   }
   move() {
