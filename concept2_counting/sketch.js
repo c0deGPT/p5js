@@ -22,8 +22,8 @@ function preload(){
 function setup() {
   createCanvas(windowWidth, windowHeight)
   malaVideo.hide()
-  videoWidth = malaVideo.width/4
-  videoHeight = malaVideo.height/4
+  videoWidth = 320
+  videoHeight = 320
   videoX = width/2 - videoWidth/2
   videoY = height/2 - videoHeight/2 - 70
 
@@ -54,6 +54,11 @@ function draw() {
 
   drawJudgeLine()
   genNextBar()
+
+  fill(0)
+  textSize(16)
+  text('Press SPACE', longBar.x + 52, longBar.y + 80) //prompt
+
   updateFloatingTexts()
 }
 
